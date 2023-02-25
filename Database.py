@@ -7,6 +7,13 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
+def delete(collection, ean: str = None, everything: bool = False):
+    if everything:
+        collection.delete_many({})
+    elif ean:
+        collection.delete_one({"ean": ean})
+
+
 class MongoDBWorker:
     """
     MongoDBWorker class is used to connect to MongoDB and perform operations on it.
@@ -22,12 +29,14 @@ class MongoDBWorker:
         self.matches_collection = self.db[matches_collection]
         self.logger = logging.getLogger("db")
 
+        # delete(self.matches_collection, everything=True)
+
     def insert(self, product: dict, current_count: int, total_count: int):
         query = {"ean": product["ean"], "store": product["store"]}
 
         try:
             self.collection.find_one_and_replace(query, product, upsert=True)
-            self.logger.info(f'{product["store"]} | {(current_count / total_count) * 100:.1f}% | '
+            self.logger.debug(f'{product["store"]} | {(current_count / total_count) * 100:.1f}% | '
                              f'{product["name"]} | {product["price"]}')
         except errors.ServerSelectionTimeoutError:
             return
@@ -85,7 +94,7 @@ class MongoDBWorker:
         all_eans = {}
         lonely_eans = []
 
-        for doc in self.collection.find({}):
+        for doc in self.collection.find({"category": {"$ne": "N/A"}}):
             if doc["ean"] in all_eans:
                 all_eans[doc["ean"]] += 1
             else:

@@ -85,7 +85,7 @@ def image_parser(product, store) -> str:
 
 
 def name_parser(product_name):
-    invalid_chars = {"´": "'", "`": "'", "  ": " ", "amp;": ""}
+    invalid_chars = {"´": "'", "`": "'", "  ": " ", "amp;": "", "⁰": ""}
     regex = ",? \d{1,4}?\d? ?(g|kg|ml|l|/|tk|€|x|×|,)"
 
     for char in invalid_chars:
